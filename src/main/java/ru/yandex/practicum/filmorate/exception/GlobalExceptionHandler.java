@@ -32,8 +32,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleValidationException(MethodArgumentNotValidException e) {
-        List<String> errorMessages = e.getBindingResult()
+    public String handleValidationException(MethodArgumentNotValidException exception) {
+        List<String> errorMessages = exception.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(FieldError::getDefaultMessage)

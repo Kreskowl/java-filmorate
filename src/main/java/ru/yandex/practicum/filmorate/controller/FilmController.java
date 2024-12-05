@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,8 +26,8 @@ public class FilmController {
     private long currentId = 0;
 
     @GetMapping
-    public Collection<Film> getAll() {
-        return films.values();
+    public List<Film> getAll() {
+        return films.values().stream().toList();
     }
 
     @PostMapping

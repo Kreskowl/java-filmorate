@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -25,8 +25,8 @@ public class UserController {
     private long currentId = 0;
 
     @GetMapping
-    public Collection<User> getAll() {
-        return users.values();
+    public List<User> getAll() {
+        return users.values().stream().toList();
     }
 
     @PostMapping

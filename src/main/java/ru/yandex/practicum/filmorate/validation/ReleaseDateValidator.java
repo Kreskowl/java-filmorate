@@ -17,9 +17,8 @@ public class ReleaseDateValidator implements ConstraintValidator<AfterLowerBound
     @Override
     public boolean isValid(LocalDate releaseDate, ConstraintValidatorContext context) {
         if (releaseDate == null) {
-            return true; // Значение может быть проверено другой аннотацией, например, @NotNull
+            return true;
         }
         return !releaseDate.isBefore(LOWER_RELEASE_DATE_BOUND);
     }
-
 }
