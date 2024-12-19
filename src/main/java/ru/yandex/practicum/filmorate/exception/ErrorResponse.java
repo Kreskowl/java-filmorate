@@ -1,7 +1,10 @@
 package ru.yandex.practicum.filmorate.exception;
 
+import lombok.Getter;
+
 import java.util.List;
 
+@Getter
 public class ErrorResponse {
     private final int status;
     private final String error;
@@ -20,22 +23,6 @@ public class ErrorResponse {
         this.error = error;
         this.message = message;
         this.details = details;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public List<String> getDetails() {
-        return details;
     }
 }
 
