@@ -1,22 +1,16 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.dto.user;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
-@EqualsAndHashCode(of = {"id"})
-public class User {
-    private Long id;
+public class UpdateUserRequest {
+    private long id;
     private String name;
     @NotBlank(message = "Email must not be blank")
     @Email(message = "Email should be valid")
@@ -29,15 +23,19 @@ public class User {
     @PastOrPresent(message = "Birthday cannot be in the future")
     private LocalDate birthday;
 
-    @JsonIgnore
-    @ToString.Exclude
-    private Set<Long> friends = new HashSet<>();
+    public boolean hasUsername() {
+        return !(name == null || name.isBlank());
+    }
 
-    public void useLoginForEmptyName() {
-        if (this.name == null || this.name.isBlank()) {
-            this.name = this.login;
-        }
+    public boolean hasEmail() {
+        return !(email == null || email.isBlank());
+    }
+
+    public boolean hasLogin() {
+        return !(login == null || login.isBlank());
+    }
+
+    public boolean hasBirthday() {
+        return !(birthday == null);
     }
 }
-
-

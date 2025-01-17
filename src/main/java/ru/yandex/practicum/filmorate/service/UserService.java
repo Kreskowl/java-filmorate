@@ -4,9 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.UserDbStorage;
+import ru.yandex.practicum.filmorate.dto.user.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UserDto;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.HashSet;
 import java.util.List;
@@ -17,79 +22,96 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-    private final UserStorage userStorage;
+    private final UserDbStorage userDbStorage;
 
-    public List<User> getAllUsers() {
-        return userStorage.getAll();
+    public List<UserDto> getAllUsers() {
+        return userDbStorage.getAll()
+                .stream()
+                .map(UserMapper::mapToUserDto)
+                .collect(Collectors.toList());
     }
 
-    public User getUserById(long id) {
-        return userStorage.findById(id);
+    public UserDto getUserById(long id) {
+        return UserMapper.mapToUserDto(getUser(id));
     }
 
-    public User createUser(User newUser) {
-        return userStorage.create(newUser);
+    public UserDto createUser(NewUserRequest request) {
+        User user = UserMapper.mapToUser(request);
+        user = userDbStorage.create(user);
+        return UserMapper.mapToUserDto(user);
     }
 
-    public User updateUser(User updatedUser) {
-        return userStorage.update(updatedUser);
+    public UserDto updateUser(UpdateUserRequest request) {
+        User updatedUser = getUser(request.getId());
+        UserMapper.updateUserFromRequest(updatedUser, request);
+        userDbStorage.update(updatedUser);
+        return UserMapper.mapToUserDto(updatedUser);
     }
 
     public void deleteUser(long id) {
-        userStorage.deleteById(id);
+        userDbStorage.deleteById(id);
     }
 
-    public List<User> getUserFriends(long id) {
-        return userStorage.findById(id).getFriends()
-                .stream()
-                .map(userStorage::findById)
+    public List<UserDto> getUserFriends(long id) {
+        User user = getUser(id);
+        Set<Long> friendIds = userDbStorage.getFriendIds(id);
+        return friendIds.stream()
+                .map(this::getUser)
+                .map(UserMapper::mapToUserDto)
                 .collect(Collectors.toList());
     }
 
-    public User addFriend(long idUserRequest, long idUserToAdd) {
-        User requestToAddUser = userStorage.findById(idUserRequest);
-        User userToAdd = userStorage.findById(idUserToAdd);
-
-        if (requestToAddUser.getFriends().contains(idUserToAdd)) {
-            throw new ValidationException("User with id " + idUserToAdd + " is already a friend.");
+    public void sendFriendshipRequest(long requesterId, long receiverId) {
+        if (requesterId == receiverId) {
+            throw new ValidationException("User cannot add themselves as a friend.");
         }
-        requestToAddUser.getFriends().add(idUserToAdd);
-        userToAdd.getFriends().add(idUserRequest);
-        logger.info("User with id {} add to friends user with id {}", idUserRequest, idUserToAdd);
 
-        userStorage.update(userToAdd);
-        return userStorage.update(requestToAddUser);
+        userDbStorage.findById(receiverId)
+                .orElseThrow(() -> new NotFoundException("User with id " + receiverId + " not found"));
+
+        if (userDbStorage.isFriendshipExists(requesterId, receiverId)) {
+            throw new ValidationException("Friendship request already exists.");
+        }
+
+        userDbStorage.sendFriendRequest(requesterId, receiverId);
+        logger.info("User with id {} sent a friend request to user with id {}", requesterId, receiverId);
     }
 
-    public User deleteFriend(long requestUserId, long idUserToDelete) {
-        User requestToDelete = userStorage.findById(requestUserId);
-        User userToDelete = userStorage.findById(idUserToDelete);
+    public void approveFriendshipRequest(long requesterId, long receiverId) {
+        if (!userDbStorage.isFriendshipExists(requesterId, receiverId)) {
+            throw new ValidationException("No friend request found from user with id " + requesterId + " to user with id " + receiverId);
+        }
 
-        logger.debug("Friends of user with id {} before delete: {}", requestUserId, requestToDelete.getFriends());
-
-
-        requestToDelete.getFriends().remove(idUserToDelete);
-        userToDelete.getFriends().remove(requestUserId);
-
-        logger.info("User with id {} delete user with id {} from friends list", requestUserId, idUserToDelete);
-        logger.debug("Friends of user with id {} after delete: {}", requestToDelete, requestToDelete.getFriends());
-
-        userStorage.update(userToDelete);
-        return userStorage.update(requestToDelete);
+        userDbStorage.confirmFriendship(requesterId, receiverId);
+        logger.info("User with id {} confirmed friendship request from user with id {}", receiverId, requesterId);
     }
 
-    public List<User> getCommonFriends(long idRequestUser, long idUserWithCommonFriends) {
-        User requestUser = userStorage.findById(idRequestUser);
-        User userWithCommonFriends = userStorage.findById(idUserWithCommonFriends);
+    public void deleteFriend(long userId, long friendId) {
+        getUser(userId);
+        getUser(friendId);
+        if (userDbStorage.isFriendshipExists(userId, friendId)) {
+            userDbStorage.cancelFriendRequest(userId, friendId);
+            logger.info("User with id {} removed friend with id {}", userId, friendId);
+        } else {
+            logger.warn("Friendship between user {} and {} not found for deletion", userId, friendId);
+        }
+    }
 
-        Set<Long> commonFriends = new HashSet<>(requestUser.getFriends());
-        commonFriends.retainAll(userWithCommonFriends.getFriends());
+    public List<UserDto> getCommonFriends(long userId, long otherUserId) {
+        Set<Long> userFriends = userDbStorage.getFriendIds(userId);
+        Set<Long> otherUserFriends = userDbStorage.getFriendIds(otherUserId);
 
-        logger.info("Found {} common friends between users with ids {} and {}",
-                commonFriends.size(), idRequestUser, idUserWithCommonFriends);
+        Set<Long> commonFriends = new HashSet<>(userFriends);
+        commonFriends.retainAll(otherUserFriends);
 
         return commonFriends.stream()
-                .map(userStorage::findById)
+                .map(this::getUser)
+                .map(UserMapper::mapToUserDto)
                 .collect(Collectors.toList());
+    }
+
+    private User getUser(long id) {
+        return userDbStorage.findById(id)
+                .orElseThrow(() -> new NotFoundException("User with id " + id + " not found"));
     }
 }

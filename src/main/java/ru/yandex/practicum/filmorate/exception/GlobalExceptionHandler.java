@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -64,6 +65,36 @@ public class GlobalExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "An unexpected error occurred. Please try again later.",
                 unexpectedError.getMessage()
+        );
+    }
+
+    @ExceptionHandler(RepositoryException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleRepositoryException(RepositoryException exception) {
+        logger.error("Error: {}", exception.getMessage(), exception);
+        return new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Repository error",
+                exception.getMessage()
+        );
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleConstraintViolationException(ConstraintViolationException exception) {
+        List<String> errorMessages = exception.getConstraintViolations()
+                .stream()
+                .map(violation -> String.format("Field '%s': %s",
+                        violation.getPropertyPath(), violation.getMessage()))
+                .collect(Collectors.toList());
+
+        logger.error("Validation error: {}", errorMessages);
+
+        return new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation error",
+                "One or more fields have validation errors.",
+                errorMessages
         );
     }
 }
