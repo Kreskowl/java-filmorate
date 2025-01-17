@@ -70,7 +70,7 @@ public class FilmDbStorageTests {
         existingFilm.setName("Updated Movie");
         existingFilm.setDescription("Updated description");
 
-        existingFilm.setGenres(Set.of(new Genre(3L, "Comedy")));
+        existingFilm.setGenres(Set.of(new Genre(3L, "Мультфильм")));
         existingFilm.setRating(new Rating(2L, "PG"));
 
         Film updatedFilm = filmStorage.update(existingFilm);
@@ -79,7 +79,7 @@ public class FilmDbStorageTests {
         assertThat(updatedFilm.getName()).isEqualTo("Updated Movie");
         assertThat(updatedFilm.getDescription()).isEqualTo("Updated description");
 
-        assertThat(updatedFilm.getGenres()).containsExactlyInAnyOrder(new Genre(3L, "Comedy"));
+        assertThat(updatedFilm.getGenres()).containsExactlyInAnyOrder(new Genre(3L, "Мультфильм"));
 
         assertThat(updatedFilm.getRating()).isNotNull();
         assertThat(updatedFilm.getRating().getId()).isEqualTo(2L);
@@ -104,8 +104,8 @@ public class FilmDbStorageTests {
         assertThat(film.getName()).isEqualTo("Inception");
 
         assertThat(film.getGenres()).containsExactlyInAnyOrder(
-                new Genre(1L, "Sci-Fi"),
-                new Genre(2L, "Thriller")
+                new Genre(1L, "Комедия"),
+                new Genre(2L, "Драма")
         );
 
         assertThat(film.getRating()).isNotNull();
@@ -159,8 +159,8 @@ public class FilmDbStorageTests {
 
         Film updatedFilm = filmStorage.findById(1L).orElseThrow();
         assertThat(updatedFilm.getGenres()).containsExactlyInAnyOrder(
-                new Genre(3L, "Action"),
-                new Genre(4L, "Horror")
+                new Genre(3L, "Мультфильм"),
+                new Genre(4L, "Триллер")
         );
 
         film.setGenres(Collections.emptySet());
