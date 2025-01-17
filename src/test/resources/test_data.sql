@@ -33,10 +33,12 @@ VALUES ('Inception', 'A mind-bending thriller', 148, '2010-07-16', 1),
        ('The Matrix', 'A hacker discovers a shocking truth', 136, '1999-03-31', 2);
 
 INSERT INTO genres (id, name)
-VALUES (1, 'Sci-Fi'),
-       (2, 'Thriller'),
-       (3, 'Action'),
-       (4, 'Horror');
+VALUES (1, 'Комедия'),
+       (2, 'Драма'),
+       (3, 'Мультфильм'),
+       (4, 'Триллер'),
+       (5, 'Документальный'),
+       (6, 'Боевик');
 
 INSERT INTO film_genres (film_id, genre_id)
 VALUES (1, 1),
