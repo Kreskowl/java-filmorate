@@ -11,18 +11,12 @@ import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.film.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
-import ru.yandex.practicum.filmorate.dto.film.genre.GenreDto;
 import ru.yandex.practicum.filmorate.dto.film.genre.GenreRequest;
 import ru.yandex.practicum.filmorate.dto.film.rating.MpaRequest;
-import ru.yandex.practicum.filmorate.dto.film.rating.RatingDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
-import ru.yandex.practicum.filmorate.mapper.GenreMapper;
-import ru.yandex.practicum.filmorate.mapper.RatingMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Rating;
 
 import java.util.List;
 import java.util.Set;
@@ -34,8 +28,9 @@ public class FilmService {
     private static final Logger logger = LoggerFactory.getLogger(FilmService.class);
     private final FilmDbStorage filmDbStorage;
     private final UserDbStorage userDbStorage;
-    private final RatingRepository ratingRepository;
     private final GenreRepository genreRepository;
+    private final RatingRepository ratingRepository;
+
 
     public List<FilmDto> getAllFilms() {
         return filmDbStorage.getAll().stream().map(FilmMapper::mapToFilmDto).toList();
@@ -43,32 +38,6 @@ public class FilmService {
 
     public FilmDto getFilmById(long id) {
         return FilmMapper.mapToFilmDto(getFilm(id));
-    }
-
-    public List<GenreDto> getAllGenres() {
-        return genreRepository.getAll()
-                .stream()
-                .map(GenreMapper::mapToGenreDto)
-                .collect(Collectors.toList());
-    }
-
-    public GenreDto getGenreById(long id) {
-        Genre genre = genreRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Genre with id " + id + " not found"));
-        return GenreMapper.mapToGenreDto(genre);
-    }
-
-    public List<RatingDto> getAllRatings() {
-        return ratingRepository.getAll()
-                .stream()
-                .map(RatingMapper::mapToRatingDto)
-                .collect(Collectors.toList());
-    }
-
-    public RatingDto getRatingById(long id) {
-        Rating rating = ratingRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Rating with id " + id + " not found"));
-        return RatingMapper.mapToRatingDto(rating);
     }
 
     public FilmDto createFilm(NewFilmRequest request) {

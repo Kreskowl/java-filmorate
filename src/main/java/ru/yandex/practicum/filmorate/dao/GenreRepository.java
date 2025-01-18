@@ -23,11 +23,6 @@ public class GenreRepository extends BaseRepository<Genre> implements GenreStora
     private static final String FIND_GENRE_BY_ID = """
             SELECT * FROM genres WHERE id = ?
             """;
-    private static final String GET_GENRES_FOR_FILM = """
-            SELECT genre_id
-            FROM film_genres
-            WHERE film_id = ?
-            """;
 
     public GenreRepository(JdbcTemplate jdbc, RowMapper<Genre> mapper) {
         super(jdbc, mapper);

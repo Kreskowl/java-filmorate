@@ -45,8 +45,7 @@ public class FilmController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public FilmDto create(@Valid @RequestBody NewFilmRequest request) {
-        FilmDto response = filmService.createFilm(request);
-        return response;
+        return filmService.createFilm(request);
     }
 
     @PutMapping
