@@ -1,26 +1,21 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.dto.film;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import ru.yandex.practicum.filmorate.annotations.AfterLowerBoundDate;
+import ru.yandex.practicum.filmorate.dto.film.genre.GenreRequest;
+import ru.yandex.practicum.filmorate.dto.film.rating.MpaRequest;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(of = {"id"})
-public class Film {
-    private Long id;
-
-    @JsonIgnore
-    private Set<Long> likes = new HashSet<>();
-
+public class UpdateFilmRequest {
+    private long id;
     @NotBlank(message = "Name must not be blank")
     private String name;
 
@@ -28,11 +23,12 @@ public class Film {
     private String description;
 
     @Past(message = "Release date must be in the past")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @AfterLowerBoundDate
     private LocalDate releaseDate;
 
     @Positive(message = "Duration must be a positive number")
     private long duration;
-    private Rating rating;
-    private Set<Genre> genres = new HashSet<>();
+    private MpaRequest mpa;
+    private Set<GenreRequest> genres;
 }

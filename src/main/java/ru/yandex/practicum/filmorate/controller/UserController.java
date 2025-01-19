@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dto.user.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UserDto;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
@@ -24,39 +26,46 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public List<User> getAll() {
+    public List<UserDto> getAll() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    public User findById(@PathVariable long id) {
+    public UserDto findById(@PathVariable long id) {
         return userService.getUserById(id);
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getFriends(@PathVariable long id) {
+    public List<UserDto> getFriends(@PathVariable long id) {
         return userService.getUserFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
+    public List<UserDto> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
         return userService.getCommonFriends(id, otherId);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public User create(@Valid @RequestBody User newUser) {
-        return userService.createUser(newUser);
+    public UserDto create(@Valid @RequestBody NewUserRequest newUserRequest) {
+        return userService.createUser(newUserRequest);
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User updatedUser) {
-        return userService.updateUser(updatedUser);
+    public UserDto update(@Valid @RequestBody UpdateUserRequest updateUserRequest) {
+        return userService.updateUser(updateUserRequest);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public User addToFriendsList(@PathVariable long id, @PathVariable long friendId) {
-        return userService.addFriend(id, friendId);
+    @ResponseStatus(HttpStatus.OK)
+    public void addToFriendsList(@PathVariable long id, @PathVariable long friendId) {
+        userService.sendFriendshipRequest(id, friendId);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}/confirm")
+    @ResponseStatus(HttpStatus.OK)
+    public void confirmFriendship(@PathVariable long id, @PathVariable long friendId) {
+        userService.approveFriendshipRequest(friendId, id);
     }
 
     @DeleteMapping("/{id}")
@@ -66,7 +75,8 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public User deleteFromFriendsList(@PathVariable long id, @PathVariable long friendId) {
-        return userService.deleteFriend(id, friendId);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFromFriendsList(@PathVariable long id, @PathVariable long friendId) {
+        userService.deleteFriend(id, friendId);
     }
 }
